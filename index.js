@@ -6,7 +6,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-const CYCLE_API_URL = 'https://s01.cyclesoftware.nl/api/v4/articledata/entries.json';
+const CYCLE_API_URL = process.env.CYCLE_API_URL;
 const API_KEY = process.env.CYCLE_API_KEY;
 
 app.get('/', (req, res) => {
@@ -19,23 +19,28 @@ app.get('/products', async (req, res) => {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`,
-      },
+        'Authorization': `Bearer ${API_KEY}`
+      }
     });
 
     const json = await response.json();
+    console.log('CycleSoftware response:', json); // 🔍 DEBUG
+
+    if (!json.data || !Array.isArray(json.data)) {
+      return res.status(500).json({ error: 'Ongeldige response van CycleSoftware' });
+    }
 
     const simplified = json.data.map(item => ({
       barcode: item.barcode,
       merk_model: item.brand ? `${item.brand} ${item.model}` : item.model,
-      prijs: item.pricing?.RRP?.cents ? (item.pricing.RRP.cents / 100) + ' EUR' : 'Onbekend',
+      prijs: item.pricing?.RPP?.cents ? (item.pricing.RPP.cents / 100) + ' EUR' : 'Onbekend',
       voorraad: item.stock?.available,
-      kleur: item.color || 'Onbekend',
+      kleur: item.color || 'Onbekend'
     }));
 
     res.json(simplified);
   } catch (error) {
-    console.error('Fout tijdens ophalen van producten:', error);
+    console.error('Fout bij ophalen van producten:', error);
     res.status(500).json({ error: 'Er ging iets mis' });
   }
 });
