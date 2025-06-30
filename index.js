@@ -5,6 +5,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
+app.get('/', (req, res) => {
+  res.send('CastBikes API is live 🚴‍♂️');
+});
 const PORT = process.env.PORT || 10000;
 
 const CYCLE_API_URL = 'https://s01.cyclesoftware.nl/api/v4/articledata/entries.json';
