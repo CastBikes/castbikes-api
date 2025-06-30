@@ -20,19 +20,30 @@ app.get('/products', async (req, res) => {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${API_KEY}`,
-      }
+      },
     });
 
     const json = await response.json();
-console.log('API response:', json);
 
-    const simplified = json.data.map(item => ({
+    // Log status en inhoud om te debuggen
+    console.log('Status:', response.status);
+    console.log('Response JSON:', JSON.stringify(json));
+
+    const simplified = (json.data || []).map(item => ({
       barcode: item.barcode,
       merk_model: item.brand ? `${item.brand} ${item.model}` : item.model,
       prijs: item.pricing.rpp_cents / 100 + ' EUR',
       voorraad: item.stock.available,
       kleur: item.color || 'Onbekend',
     }));
+
+    res.json(simplified);
+
+  } catch (error) {
+    console.error('Fout tijdens ophalen van producten:', error);
+    res.status(500).json({ error: 'Er ging iets mis' });
+  }
+});
 
     res.json(simplified);
   } catch (error) {
