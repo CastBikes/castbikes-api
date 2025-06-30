@@ -24,6 +24,7 @@ app.get('/products', async (req, res) => {
     });
 
     const json = await response.json();
+console.log('API response:', json);
 
     const simplified = json.data.map(item => ({
       barcode: item.barcode,
