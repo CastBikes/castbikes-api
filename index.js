@@ -39,10 +39,11 @@ app.get('/products', async (req, res) => {
     }));
 
     res.json(simplified);
-  } catch (error) {
-    console.error('Fout bij ophalen van producten:', error);
-    res.status(500).json({ error: 'Er ging iets mis' });
-  }
+ catch (error) {
+  console.error('❌ Fout bij ophalen van producten:', error.message, error.stack);
+  res.status(500).json({ error: 'Er ging iets mis', details: error.message });
+}
+
 });
 
 app.listen(PORT, () => {
