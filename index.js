@@ -24,7 +24,7 @@ app.get('/products', async (req, res) => {
     });
 
     const json = await response.json();
-    console.log('CycleSoftware response:', json); // 🔍 DEBUG
+    console.log('CycleSoftware response:', json);
 
     if (!json.data || !Array.isArray(json.data)) {
       return res.status(500).json({ error: 'Ongeldige response van CycleSoftware' });
@@ -39,11 +39,11 @@ app.get('/products', async (req, res) => {
     }));
 
     res.json(simplified);
- catch (error) {
-  console.error('❌ Fout bij ophalen van producten:', error.message, error.stack);
-  res.status(500).json({ error: 'Er ging iets mis', details: error.message });
-}
 
+  } catch (error) {
+    console.error('❌ Fout bij ophalen van producten', error.message, error.stack);
+    res.status(500).json({ error: 'Er ging iets mis', details: error.message });
+  }
 });
 
 app.listen(PORT, () => {
