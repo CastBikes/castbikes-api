@@ -1,53 +1,60 @@
-// index.js
 import express from 'express';
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 
 dotenv.config();
-const app = express();
-const PORT = process.env.PORT || 10000;
 
-app.get('/products', async (req, res) => {
+const PORT = process.env.PORT || 10000;
+const app = express();
+
+const API_URL = process.env.CYCLE_API_URL;           // bijv. https://s01.cyclesoftware.nl/api/v4/articledata/entries.json
+const USER = process.env.CYCLESOFTWARE_USERNAME;
+const PASS = process.env.CYCLESOFTWARE_PASSWORD;
+
+app.get('/products', async (_, res) => {
   try {
-    const response = await fetch(process.env.CYCLE_API_URL, {
+    const auth = Buffer.from(`${USER}:${PASS}`).toString('base64');
+    const resp = await fetch(API_URL, {
       headers: {
-        'Authorization': 'Basic ' + Buffer.from(`${process.env.CYCLESOFTWARE_USERNAME}:${process.env.CYCLESOFTWARE_PASSWORD}`).toString('base64'),
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Authorization: `Basic ${auth}`,
+        Accept: 'application/json',
       },
     });
+    const json = await resp.json();
 
-    const data = await response.json();
-
-    if (!data || !data.data) {
-      return res.status(500).json({
-        error: "Ongeldige response van CycleSoftware",
-        response: data
-      });
+    if (json.error) {
+      console.error('Cyclesoftware response:', json);
+      return res.json({ error: 'Ongeldige response van CycleSoftware', response: json });
     }
 
-    const products = data.data.map(item => {
-      const prijsCent = item.pricing?.rpp_cents;
-      const kleur = item.color_description?.values?.nl;
-      const merk = item.supplier_name || "Onbekend";
-      const artikel = item.article_id || "Onbekend";
+    const result = json.data.map(item => {
+      const pricing = item.pricing;
+      // kleur zoeken in supplier_data properties
+      let kleur = 'Onbekend';
+      if (Array.isArray(item.supplier_data) && item.supplier_data[0]?.[item.supplier_data[0].length - 1]) {
+        const props = item.supplier_data[0][item.supplier_data[0].length - 1];
+        kleur = props[34] || props['140'] || 'Onbekend';
+      }
 
       return {
-        barcode: item.barcode || "Onbekend",
-        merk_model: `${merk} - ${artikel}`,
-        prijs: prijsCent ? `${(prijsCent / 100).toFixed(2)} EUR` : "Onbekend",
-        voorraad: item.stock?.available ?? false,
-        kleur: kleur || "Onbekend"
+        barcode: item.barcode,
+        merk_model: `${item.supplier_data?.[0]?.[5] || 'Onbekend'} – ${item.supplier_data?.[0]?.[6] || 'Onbekend'}`,
+        prijs: pricing?.ecommerce_price_cents ? `${(pricing.ecommerce_price_cents/100).toFixed(2)} ${pricing.currency}` :
+               pricing?.pos_sales_price_cents ? `${(pricing.pos_sales_price_cents/100).toFixed(2)} ${pricing.currency}` :
+               pricing?.rrp_cents ? `${(pricing.rrp_cents/100).toFixed(2)} ${pricing.currency}` :
+               'Onbekend',
+        voorraad: Array.isArray(item.objects) ? item.objects.some(o => o.available) : item.stock?.available,
+        kleur,
       };
     });
 
-    res.json(products);
-  } catch (error) {
-    console.error('Fout bij ophalen CycleSoftware data:', error);
-    res.status(500).json({ error: "Serverfout bij ophalen CycleSoftware data" });
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Fout bij ophalen data' });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Server draait op poort ${PORT}`);
+  console.log(`Server draait op port ${PORT}`);
 });
