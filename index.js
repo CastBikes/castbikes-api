@@ -24,10 +24,19 @@ app.get('/products', async (req, res) => {
       },
     });
 
-    const json = await response.json();
+    const raw = await response.text();
+
+    let json;
+    try {
+      json = JSON.parse(raw);
+    } catch (e) {
+      console.error('❌ Kon JSON niet parsen:', raw);
+      return res.status(500).json({ error: 'Ongeldige JSON van CycleSoftware', response: raw });
+    }
 
     if (!json.data || !Array.isArray(json.data)) {
-      return res.status(500).json({ error: 'Ongeldige response van CycleSoftware' });
+      console.error('⚠️ Foutstructuur van CycleSoftware:', json);
+      return res.status(500).json({ error: 'Ongeldige response van CycleSoftware', response: json });
     }
 
     const simplified = json.data.map(item => ({
