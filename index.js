@@ -1,16 +1,16 @@
 import express from 'express';
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-
-const CYCLE_API_URL = process.env.CYCLE_API_URL;
 const API_KEY = process.env.CYCLE_API_KEY;
+const CYCLE_API_URL = process.env.CYCLE_API_URL;
 
 app.get('/', (req, res) => {
-  res.send('CastBikes API is live 🚴‍♂️');
+  res.send('CastBikes API is live 🚲');
 });
 
 app.get('/products', async (req, res) => {
@@ -24,7 +24,7 @@ app.get('/products', async (req, res) => {
     });
 
     const json = await response.json();
-    console.log('CycleSoftware response:', json);
+    console.log('CycleSoftware response:', json); // DEBUG LOG
 
     if (!json.data || !Array.isArray(json.data)) {
       return res.status(500).json({ error: 'Ongeldige response van CycleSoftware' });
@@ -33,15 +33,14 @@ app.get('/products', async (req, res) => {
     const simplified = json.data.map(item => ({
       barcode: item.barcode,
       merk_model: item.brand ? `${item.brand} ${item.model}` : item.model,
-      prijs: item.pricing?.RPP?.cents ? (item.pricing.RPP.cents / 100) + ' EUR' : 'Onbekend',
+      prijs: item.pricing?.rpp_cents ? (item.pricing.rpp_cents / 100) + ' EUR' : 'Onbekend',
       voorraad: item.stock?.available,
       kleur: item.color || 'Onbekend'
     }));
 
     res.json(simplified);
-
   } catch (error) {
-    console.error('❌ Fout bij ophalen van producten', error.message, error.stack);
+    console.error('❌ Fout bij ophalen van producten:', error.message, error.stack);
     res.status(500).json({ error: 'Er ging iets mis', details: error.message });
   }
 });
