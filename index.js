@@ -32,12 +32,12 @@ app.get('/products', async (req, res) => {
       const priceCents = entry?.pricing?.pos_sales_price_cents ?? null;
       const price = priceCents ? `${(priceCents / 100).toFixed(2)} EUR` : 'Onbekend';
 
-      const merk = entry?.supplier_name ?? 'Onbekend';
-      const model = entry?.article_description ?? 'Onbekend';
-      const kleur = entry?.color_description?.values?.nl ?? 'Onbekend';
+      const merk = entry?.supplier_name || 'Onbekend';
+      const model = entry?.article_description || entry?.article_id || 'Onbekend';
+      const kleur = entry?.color_description?.values?.nl || 'Onbekend';
 
       return {
-        barcode: entry?.barcode ?? 'Onbekend',
+        barcode: entry?.barcode || 'Onbekend',
         merk_model: `${merk} - ${model}`,
         prijs: price,
         voorraad: entry?.stock?.available ?? false,
