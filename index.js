@@ -1,56 +1,65 @@
-import express from 'express';
-import fetch from 'node-fetch';
-import dotenv from 'dotenv';
-
-dotenv.config();
+const express = require("express");
+const axios = require("axios");
+require("dotenv").config();
 
 const app = express();
-const port = process.env.PORT || 10000;
+const port = process.env.PORT || 3000;
 
-const CYCLE_API_URL = 'https://s01.cyclesoftware.nl/api/v4/articledata/entries.json';
-const CYCLE_API_USERNAME = process.env.CYCLE_API_USERNAME;
-const CYCLE_API_PASSWORD = process.env.CYCLE_API_PASSWORD;
-
-app.get('/products', async (req, res) => {
+app.get("/", async (req, res) => {
   try {
-    const response = await fetch(CYCLE_API_URL, {
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from(`${CYCLE_API_USERNAME}:${CYCLE_API_PASSWORD}`).toString('base64'),
-      },
-    });
+    const response = await axios.get(
+      "https://s01.cyclesoftware.nl/api/v4/articledata/entries.json",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.CYCLE_API_TOKEN}`,
+        },
+      }
+    );
 
-    const data = await response.json();
+    const entries = response.data;
 
-    if (data.error || !data.data) {
-      return res.status(500).json({
-        error: 'Ongeldige response van CycleSoftware',
-        response: data
-      });
-    }
+    const products = entries.map((entry) => {
+      const barcode = entry.barcode || "Onbekend";
 
-    const products = data.data.map(entry => {
-      const priceCents = entry?.pricing?.pos_sales_price_cents ?? null;
-      const price = priceCents ? `${(priceCents / 100).toFixed(2)} EUR` : 'Onbekend';
+      // Beschrijving ophalen
+      const description =
+        entry.description?.value?.nl ||
+        entry.description?.value?.en ||
+        "Onbekend";
 
-      const merk = entry?.supplier_name || 'Onbekend';
-      const model = entry?.article_description || entry?.article_id || 'Onbekend';
-      const kleur = entry?.color_description?.values?.nl || 'Onbekend';
+      // Kleur ophalen uit color_description of basic_color
+      const kleur =
+        entry.color_description?.value?.nl ||
+        entry.basic_color?.value?.nl ||
+        "Onbekend";
+
+      // Prijs ophalen en omzetten van centen naar euro
+      const prijsCenten = entry.rrp_cents || entry.pricing?.rrp_cents || 0;
+      const prijs =
+        prijsCenten > 0
+          ? `${(prijsCenten / 100).toFixed(2)} EUR`
+          : "Onbekend";
+
+      const voorraad = entry.stock_quantity > 0;
 
       return {
-        barcode: entry?.barcode || 'Onbekend',
-        merk_model: `${merk} - ${model}`,
-        prijs: price,
-        voorraad: entry?.stock?.available ?? false,
-        kleur: kleur
+        barcode,
+        merk_model: description,
+        prijs,
+        voorraad,
+        kleur,
       };
     });
 
     res.json(products);
   } catch (error) {
-    res.status(500).json({ error: 'Interne serverfout', details: error.message });
+    console.error("Fout bij ophalen van data:", error.message);
+    res
+      .status(500)
+      .json({ fout: "Er ging iets mis bij het ophalen van CycleSoftware data" });
   }
 });
 
 app.listen(port, () => {
-  console.log(`Server draait op poort ${port}`);
+  console.log(`API draait op http://localhost:${port}`);
 });
