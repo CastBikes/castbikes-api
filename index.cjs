@@ -5,7 +5,11 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.get('/', async (req, res) => {
+app.get('/', (req, res) => {
+  res.send('CycleSoftware API is live! Gebruik /products voor de data.');
+});
+
+app.get('/products', async (req, res) => {
   try {
     const response = await axios.get(process.env.CYCLE_API_URL, {
       headers: {
@@ -17,7 +21,7 @@ app.get('/', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('Fout bij ophalen van data:', error.response?.status, error.message);
-    res.status(error.response?.status || 500).send('Er ging iets mis bij het ophalen van de data.');
+    res.status(error.response?.status || 500).send('Er ging iets mis bij het ophalen van de producten.');
   }
 });
 
