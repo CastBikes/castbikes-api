@@ -8,8 +8,9 @@ const port = process.env.PORT || 3000;
 app.get('/products', async (req, res) => {
   try {
     const response = await axios.get(process.env.CYCLE_API_URL, {
-      headers: {
-        'X-API-Key': process.env.CYCLE_API_KEY
+      auth: {
+        username: process.env.CYCLE_API_USERNAME,
+        password: process.env.CYCLE_API_PASSWORD
       }
     });
     res.json(response.data);
