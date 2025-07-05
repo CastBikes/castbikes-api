@@ -3,16 +3,15 @@ const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
-const port = process.env.PORT || 10000;
+const port = process.env.PORT || 3000;
 
 app.get('/products', async (req, res) => {
   try {
     const response = await axios.get(process.env.CYCLE_API_URL, {
       headers: {
-        'Authorization': `Bearer ${process.env.CYCLE_API_KEY}`
+        'X-API-Key': process.env.CYCLE_API_KEY
       }
     });
-
     res.json(response.data);
   } catch (error) {
     console.error('Fout bij ophalen van data:', error.message);
