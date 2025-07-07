@@ -14,8 +14,8 @@ app.get('/', (req, res) => {
 app.get('/products', async (req, res) => {
   try {
     const url = process.env.CYCLE_API_URL;
-    const username = process.env.CYCLESOFTWARE_USERNAME;
-    const password = process.env.CYCLESOFTWARE_PASSWORD;
+    const username = process.env.CYCLE_API_USERNAME;
+    const password = process.env.CYCLE_API_PASSWORD;
 
     // Basis Auth header bouwen
     const basicAuth = 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64');
