@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 
 app.get('/', (req, res) => {
-  res.send('CastBikes API is live 🚴‍♂️');
+  res.send('CastBikes API is live 🚲');
 });
 
 app.get('/products', async (req, res) => {
@@ -23,13 +23,13 @@ app.get('/products', async (req, res) => {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': basicAuth,
+        'Authorization': basicAuth
       }
     });
 
     const json = await response.json();
-    console.log('CycleSoftware response:', JSON.stringify(json).substring(0, 500)); // debug (optioneel)
 
+    // Controle op juiste data-structuur
     if (!json.data || !Array.isArray(json.data)) {
       return res.status(500).json({
         error: 'Ongeldige response van CycleSoftware',
@@ -37,24 +37,26 @@ app.get('/products', async (req, res) => {
       });
     }
 
+    // Vereenvoudigde mapping van producten
     const simplified = json.data.map(item => ({
       barcode: item.barcode || 'Onbekend',
-      merk_model: item.brand && item.model ? `${item.brand} ${item.model}` : item.model || 'Onbekend',
-      prijs: item.pricing?.rpp_cents != null ? (item.pricing.rpp_cents / 100).toFixed(2) + ' EUR' : 'Onbekend',
-      voorraad: item.stock?.available ?? false,
-      kleur: item.color || 'Onbekend'
+      merk_model: item.description || 'Onbekend',
+      prijs: item.dealer_rrp_cents != null ? (item.dealer_rrp_cents / 100).toFixed(2) + ' EUR' : 'Onbekend',
+      voorraad: item.is_sold_to_customer === false,
+      kleur: item.color || 'Onbekend'  // Alleen als 'color' bestaat in jouw JSON
     }));
 
     res.json(simplified);
+
   } catch (error) {
-    console.error('❌ Fout bij ophalen van producten:', error.message);
+    console.error('❌ Fout bij ophalen van producten', error.message);
     res.status(500).json({
-      error: 'Er ging iets mis',
+      error: 'Er ging iets mis bij het ophalen van producten.',
       details: error.message
     });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Server draait op poort ${PORT}`);
+  console.log(`Server draait op poort ${PORT}`);
 });
