@@ -40,12 +40,13 @@ app.get('/products', async (req, res) => {
     // Vereenvoudigde mapping van producten
 const simplified = json.data.map(item => ({
   barcode: item.barcode || 'Onbekend',
-  merk_model: item.description?.trim() || 'Onbekend',
+  merk: item.properties?.brand?.values?.[0]?.value || 'Onbekend',
+  model: item.properties?.model?.values?.[0]?.value || 'Onbekend',
   prijs: item.pricing && item.pricing.rrp_cents != null
     ? (item.pricing.rrp_cents / 100).toFixed(2) + ' EUR'
     : 'Onbekend',
   voorraad: item.stock?.available ?? false,
-  kleur: item.color || 'Onbekend' // Alleen als dit bestaat
+  kleur: item.color || 'Onbekend'
 }));
 
     res.json(simplified);
