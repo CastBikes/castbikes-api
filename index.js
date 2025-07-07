@@ -40,7 +40,7 @@ app.get('/products', async (req, res) => {
     // Vereenvoudigde mapping van producten
 const simplified = json.data.map(item => ({
   barcode: item.barcode || 'Onbekend',
-  merk_model: item.description || 'Onbekend',
+  merk_model: item.description?.trim() || 'Onbekend',
   prijs: item.pricing && item.pricing.rrp_cents != null
     ? (item.pricing.rrp_cents / 100).toFixed(2) + ' EUR'
     : 'Onbekend',
