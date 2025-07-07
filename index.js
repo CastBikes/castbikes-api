@@ -39,29 +39,40 @@ app.get('/products', async (req, res) => {
 
     // Vereenvoudigde mapping van producten
 const simplified = json.data.map(item => {
-const merk = item.properties?.brand?.values?.[0]?.value ?? 'Onbekend';
-const model = item.properties?.model?.values?.[0]?.value?.user ?? 'Onbekend';
+  // 1. Merk
+  const brandVal = item.properties?.brand?.values?.[0]?.value;
+  const merk = typeof brandVal === 'string'
+    ? brandVal
+    : brandVal?.user || 'Onbekend';
 
+  // 2. Model
+  const modelVal = item.properties?.model?.values?.[0]?.value;
+  const model = typeof modelVal === 'string'
+    ? modelVal
+    : modelVal?.user || 'Onbekend';
 
-  // Log tijdelijk om te debuggen
-  console.log('DEBUG:', {
-    merkRaw: item.properties?.brand?.values?.[0],
-    merk,
-    model
-  });
+  // 3. Kleur
+  const kleurVal = item.properties?.color_description?.values?.[0]?.value?.user;
+  const kleur = kleurVal || 'Onbekend';
+
+  // 4. Modeljaar als optie
+  const jaarVal = item.properties?.model_year?.values?.[0]?.value;
+  const model_jaar = jaarVal ? jaarVal.toString() : 'Onbekend';
 
   return {
     barcode: item.barcode || 'Onbekend',
     merk,
     model,
-    merk_model: `${merk} — ${model}`,
+    kleur,
+    model_jaar,
+    merk_model: `${merk} – ${model}`,
     prijs: item.pricing && item.pricing.rrp_cents != null
       ? (item.pricing.rrp_cents / 100).toFixed(2) + ' EUR'
       : 'Onbekend',
-    voorraad: item.stock?.available ?? false,
-    kleur: item.color || 'Onbekend'
+    voorraad: item.stock?.available ?? false
   };
 });
+
     res.json(simplified);
 
   } catch (error) {
