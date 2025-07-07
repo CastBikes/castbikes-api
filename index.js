@@ -41,7 +41,7 @@ app.get('/products', async (req, res) => {
 const simplified = json.data.map(item => ({
   barcode: item.barcode || 'Onbekend',
   merk: item.properties?.brand?.values?.[0]?.value || 'Onbekend',
-  model: item.properties?.model?.values?.[0]?.value || 'Onbekend',
+model: item.properties?.model?.values?.[0]?.value?.user || 'Onbekend',
   prijs: item.pricing && item.pricing.rrp_cents != null
     ? (item.pricing.rrp_cents / 100).toFixed(2) + ' EUR'
     : 'Onbekend',
