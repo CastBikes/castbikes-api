@@ -44,8 +44,6 @@ const simplified = json.data.map(item => {
 
   return {
     barcode: item.barcode || 'Onbekend',
-    merk,
-    model,
     merk_model: `${merk} – ${model}`,
     prijs: item.pricing && item.pricing.rrp_cents != null
       ? (item.pricing.rrp_cents / 100).toFixed(2) + ' EUR'
