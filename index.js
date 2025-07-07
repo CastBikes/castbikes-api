@@ -38,13 +38,15 @@ app.get('/products', async (req, res) => {
     }
 
     // Vereenvoudigde mapping van producten
-    const simplified = json.data.map(item => ({
-      barcode: item.barcode || 'Onbekend',
-      merk_model: item.description || 'Onbekend',
-      prijs: item.dealer_rrp_cents != null ? (item.dealer_rrp_cents / 100).toFixed(2) + ' EUR' : 'Onbekend',
-      voorraad: item.is_sold_to_customer === false,
-      kleur: item.color || 'Onbekend'  // Alleen als 'color' bestaat in jouw JSON
-    }));
+const simplified = json.data.map(item => ({
+  barcode: item.barcode || 'Onbekend',
+  merk_model: item.description || 'Onbekend',
+  prijs: item.pricing && item.pricing.rrp_cents != null
+    ? (item.pricing.rrp_cents / 100).toFixed(2) + ' EUR'
+    : 'Onbekend',
+  voorraad: item.stock?.available ?? false,
+  kleur: item.color || 'Onbekend' // Alleen als dit bestaat
+}));
 
     res.json(simplified);
 
