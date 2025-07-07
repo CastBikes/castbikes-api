@@ -39,8 +39,8 @@ app.get('/products', async (req, res) => {
 
     // Vereenvoudigde mapping van producten
 const simplified = json.data.map(item => {
-  const merk = item.properties?.brand?.values?.[0]?.value || 'Onbekend';
-  const model = item.properties?.model?.values?.[0]?.value?.user || 'Onbekend';
+const merk = item.properties?.brand?.values?.[0]?.value?.value || 'Onbekend';
+const model = item.properties?.model?.values?.[0]?.value?.user || 'Onbekend';
 
   return {
     barcode: item.barcode || 'Onbekend',
